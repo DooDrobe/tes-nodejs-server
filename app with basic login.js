@@ -7,9 +7,6 @@ const app = express()
 const port = process.env.PORT || 5000
 const bcrypt = require('bcrypt')
 const saltRounds = 10
-//session
-const sessions = require('express-session'); //untuk ngebuat session
-app.use(cookieParser());
 
 // app.use(session({
 // 	secret: 'secret',
@@ -30,15 +27,6 @@ const pool = mysql.createPool({
     password        : '',
     database        : 'elfadh'
 });
-
-//session
-const oneDay = 1000 * 60 * 60 * 24;
-app.use(sessions({
-    secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
-    saveUninitialized:true,
-    cookie: { maxAge: oneDay },
-    resave: false 
-}));
 
 
 //MAIN QUERY
@@ -73,7 +61,6 @@ app.post("/api/insert", (req,res) => {
     //     // console.log(err)
     // })
 })
-
 app.get("/api/get", (req,res) => {
     const sqlSelect = 'SELECT * FROM admin'
     pool.query(sqlSelect, (err,result) => {
@@ -82,15 +69,35 @@ app.get("/api/get", (req,res) => {
         console.log(err)
     })
 })
+// app.post("/api/getID", (req,res) => {
+//     const username = req.body.username
+//     const password = req.body.password
+//     console.log(username)
+//     console.log(password)
+//     const sqlSelect = 'SELECT * FROM admin WHERE username = ? AND password = ?'
+//     pool.query(sqlSelect, [username,password],(err,result) => {
+//         res.send(result)
+//         console.log(result)
+//         console.log(err)
+//     })
+// })
 app.post("/auth", (req,res) => {
     const username = req.body.username
     const password = req.body.password
-    
-    session=req.session;
     console.log(username)
     // if(username && password){
         const sqlSelect = 'SELECT * FROM admin WHERE username = ? AND password = ?'
         pool.query(sqlSelect, [username,password],(err,result) => {
+
+            // res.send(result)
+            //console.log(err)
+            //if (err) throw err
+            // if (result.length > 0){
+            //     res.send('pass')
+            // } else{
+            //     res.send('incorect pass or uname')
+            // }
+            // res.end()
             if(err){
                 res.send({ err: err});
             }
@@ -100,29 +107,11 @@ app.post("/auth", (req,res) => {
                 res.send({message : "WRONG USERNAME OR PASSWORD!"})
             }
         })
+    // }else{
+    //     res.send('Please enter uname and password')
+    // }
+    // response.end()
 })
-app.get('/',(req,res) => {
-    session=req.session;
-    if(session.userid){
-        res.send("Welcome User <a href=\'/logout'>click to logout</a>");
-    }else
-    res.sendFile('views/index.html',{root:__dirname})
-});
-
-//logout
-app.get('/logout',(req,res) => {
-    req.session.destroy();
-    res.redirect('/');
-});
-
-
-
-
-
-
-
-
-
 //TEST QUERY
 
 //select all query
