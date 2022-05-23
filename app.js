@@ -88,8 +88,11 @@ app.get('/auth',(req,res) => {
     session=req.session;
     if(session.userid){
         res.send("Welcome User <a href=\'/logout'>click to logout</a>");
-    }else
-    //res.sendFile('views/index.html',{root:__dirname})
+        res.send({ loggedIn: true, user: req.session.user });
+    }else{
+        //res.sendFile('views/index.html',{root:__dirname})
+        res.send({ loggedIn: false });
+    }
 });
 app.post("/auth", (req,res) => {
     const username = req.body.username
