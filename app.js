@@ -9,6 +9,7 @@ const bcrypt = require('bcrypt')
 const saltRounds = 10
 //session
 const sessions = require('express-session'); //untuk ngebuat session
+const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
 // app.use(session({
@@ -39,7 +40,7 @@ app.use(sessions({
     cookie: { maxAge: oneDay },
     resave: false 
 }));
-
+var session;
 
 //MAIN QUERY
 //REGISTER USER without AUTH
@@ -82,25 +83,6 @@ app.get("/api/get", (req,res) => {
         console.log(err)
     })
 })
-app.post("/auth", (req,res) => {
-    const username = req.body.username
-    const password = req.body.password
-    
-    session=req.session;
-    console.log(username)
-    // if(username && password){
-        const sqlSelect = 'SELECT * FROM admin WHERE username = ? AND password = ?'
-        pool.query(sqlSelect, [username,password],(err,result) => {
-            if(err){
-                res.send({ err: err});
-            }
-            if(result.length > 0){                
-                res.send(result);      
-            }else{
-                res.send({message : "WRONG USERNAME OR PASSWORD!"})
-            }
-        })
-})
 app.get('/',(req,res) => {
     session=req.session;
     if(session.userid){
@@ -108,6 +90,28 @@ app.get('/',(req,res) => {
     }else
     res.sendFile('views/index.html',{root:__dirname})
 });
+app.post("/auth", (req,res) => {
+    const username = req.body.username
+    const password = req.body.password
+    
+    console.log(username)
+    // if(username && password){
+        const sqlSelect = 'SELECT * FROM admin WHERE username = ? AND password = ?'
+        pool.query(sqlSelect, [username,password],(err,result) => {
+            if(err){
+                res.send({ err: err});
+            }
+            if(result.length > 0){                    
+                session=req.session;   
+                session.userid = username   
+                console.log(req.session)      
+                res.send(result);      
+            }else{
+                res.send({message : "WRONG USERNAME OR PASSWORD!"})
+            }
+        })
+})
+
 
 //logout
 app.get('/logout',(req,res) => {
