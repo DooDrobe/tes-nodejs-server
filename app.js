@@ -35,6 +35,7 @@ const pool = mysql.createPool({
 //session
 const oneDay = 1000 * 60 * 60 * 24;
 app.use(sessions({
+    key: "UID",
     secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
     saveUninitialized:true,
     cookie: { maxAge: oneDay },
@@ -83,12 +84,12 @@ app.get("/api/get", (req,res) => {
         console.log(err)
     })
 })
-app.get('/',(req,res) => {
+app.get('/auth',(req,res) => {
     session=req.session;
     if(session.userid){
         res.send("Welcome User <a href=\'/logout'>click to logout</a>");
     }else
-    res.sendFile('views/index.html',{root:__dirname})
+    //res.sendFile('views/index.html',{root:__dirname})
 });
 app.post("/auth", (req,res) => {
     const username = req.body.username
@@ -116,7 +117,7 @@ app.post("/auth", (req,res) => {
 //logout
 app.get('/logout',(req,res) => {
     req.session.destroy();
-    res.redirect('/');
+    res.redirect('/login');
 });
 
 
