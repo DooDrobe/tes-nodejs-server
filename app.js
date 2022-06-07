@@ -155,11 +155,11 @@ app.post("/tambahcalon/api/insert", (req,res) => {
     console.log(jk)
     console.log(umur)
     console.log(alamat)
-    // const sqlInsert = 'INSERT INTO admin (username,password) VALUES (?,?)'
-    // pool.query(sqlInsert, [username, password], (err,result) => {
-    //     // console.log(result)
-    //      console.log(err)
-    // })
+    const sqlInsert = 'INSERT INTO calon_karyawan(id,nama,umur,jk,email,alamat) VALUES (?,?,?,?,?,?)'
+    pool.query(sqlInsert, [id,nama,umur,jk,email,alamat], (err,result) => {
+        console.log(result)
+        console.log(err)
+    })
 })
 
 
