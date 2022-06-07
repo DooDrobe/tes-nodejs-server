@@ -1,3 +1,5 @@
+//import conn.jss
+
 const express =require('express')
 const bodyparser = require('body-parser')
 const mysql = require('mysql')
@@ -10,15 +12,15 @@ const saltRounds = 10
 //session
 const sessions = require('express-session'); //untuk ngebuat session
 const cookieParser = require("cookie-parser");
+//const filestore = require("session-file-store")(session)
 app.use(cookieParser());
 
-// app.use(session({
-// 	secret: 'secret',
-// 	resave: true,
-// 	saveUninitialized: true
-// }));
 
-app.use(cors())
+app.use(cors({
+    origin: ["http://localhost:3000"],
+    methods: ["GET","POST"],
+    credentials: true,
+}))
 app.use(express.json())
 app.use(bodyparser.urlencoded({extended: true}))
 app.use(bodyparser.json())
@@ -38,10 +40,12 @@ app.use(sessions({
     key: "UID",
     secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
     saveUninitialized:true,
-    cookie: { maxAge: oneDay },
-    resave: false 
+    cookie: { maxAge: 1000 * 60 * 60 * 24 },
+    resave: false, 
+    //signed : true
+    //store: new filestore()
 }));
-var session;
+//var session;
 
 //MAIN QUERY
 //REGISTER USER without AUTH
@@ -62,20 +66,21 @@ app.post("/api/insert", (req,res) => {
     const username = req.body.username
     const password = req.body.password
 
-    bcrypt.hash(password,saltRounds, (err,hash) =>{
-        pool.query(sqlInsert, [username, hash], (err,result) => {
-            console.log(err)
-        })
-    })
+    // bcrypt.hash(password,saltRounds, (err,hash) =>{
+    //     pool.query(sqlInsert, [username, hash], (err,result) => {
+    //         console.log(err)
+    //     })
+    // })
     console.log(username)
     console.log(password)
-    // const sqlInsert = 'INSERT INTO admin (username,password) VALUES (?,?)'
-    // pool.query(sqlInsert, [username, password], (err,result) => {
-    //     // console.log(result)
-    //     // console.log(err)
-    // })
+    const sqlInsert = 'INSERT INTO admin (username,password) VALUES (?,?)'
+    pool.query(sqlInsert, [username, password], (err,result) => {
+        // console.log(result)
+         console.log(err)
+    })
 })
 
+/////////LOGIN//////////
 app.get("/api/get", (req,res) => {
     const sqlSelect = 'SELECT * FROM admin'
     pool.query(sqlSelect, (err,result) => {
@@ -85,12 +90,16 @@ app.get("/api/get", (req,res) => {
     })
 })
 app.get('/auth',(req,res) => {
-    session=req.session;
-    if(session.userid){
-        res.send("Welcome User <a href=\'/logout'>click to logout</a>");
-        res.send({ loggedIn: true, user: req.session.user });
+    //req.session.destroy();
+    //console.log(req.session.userid)
+    if(req.session.userid){
+        //res.send("Welcome User <a href=\'/logout'>click to logout</a>");
+        console.log(req.session.userid)
+        res.send({ loggedIn: true, user: req.session.userid });
+        console.log(res)
     }else{
         //res.sendFile('views/index.html',{root:__dirname})
+        console.log(req.session.userid)
         res.send({ loggedIn: false });
     }
 });
@@ -105,10 +114,9 @@ app.post("/auth", (req,res) => {
             if(err){
                 res.send({ err: err});
             }
-            if(result.length > 0){                    
-                session=req.session;   
-                session.userid = username   
-                console.log(req.session)      
+            if(result.length > 0){                                      
+                req.session.userid = result   
+                console.log(req.session.userid)      
                 res.send(result);      
             }else{
                 res.send({message : "WRONG USERNAME OR PASSWORD!"})
@@ -118,12 +126,41 @@ app.post("/auth", (req,res) => {
 
 
 //logout
-app.get('/logout',(req,res) => {
-    req.session.destroy();
+app.get('/logout',(req,res) => {      
+    //req.session.destroy();    
+    // req.session.destroy();
+    // res.cookie("UID",{maxAge: Date.now() })
+    res.clearCookie("UID");
+    // console.log(req)
+    // cookies.set({maxAge: 0});
     res.redirect('/login');
+    //req.session = null
+    // req.session.destroy((err) => {
+    //     res.redirect('/login') // will always fire after session is destroyed
+    //   })
 });
 
+/////////CALON KARYAWAN API//////////
+app.post("/tambahcalon/api/insert", (req,res) => {
+    const id  = req.body.id
+    const nama  = req.body.nama
+    const jk = req.body.jk
+    const email = req.body.email
+    const umur = req.body.umur
+    const alamat = req.body.alamat
 
+    console.log(id)
+    console.log(nama)
+    console.log(email)
+    console.log(jk)
+    console.log(umur)
+    console.log(alamat)
+    // const sqlInsert = 'INSERT INTO admin (username,password) VALUES (?,?)'
+    // pool.query(sqlInsert, [username, password], (err,result) => {
+    //     // console.log(result)
+    //      console.log(err)
+    // })
+})
 
 
 
