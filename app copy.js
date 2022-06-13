@@ -12,7 +12,6 @@ const saltRounds = 10
 //session
 const sessions = require('express-session'); //untuk ngebuat session
 const cookieParser = require("cookie-parser");
-
 //const filestore = require("session-file-store")(session)
 app.use(cookieParser());
 
@@ -40,7 +39,7 @@ const oneDay = 1000 * 60 * 60 * 24;
 app.use(sessions({
     key: "UID",
     secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
-    saveUninitialized:false,
+    saveUninitialized:true,
     cookie: { maxAge: 1000 * 60 * 60 * 24 },
     resave: false, 
     //signed : true
@@ -90,53 +89,55 @@ app.get("/api/get", (req,res) => {
         console.log(err)
     })
 })
-app.get('/authcheck',(req,res) => {
+app.get('/auth',(req,res) => {
     //req.session.destroy();
-    console.log(req.session)
+    //console.log(req.session.userid)
     if(req.session.userid){
         //res.send("Welcome User <a href=\'/logout'>click to logout</a>");
         console.log(req.session.userid)
-        //res.send(req.session.userid)
         res.send({ loggedIn: true, user: req.session.userid });
-        //console.log(res)
+        console.log(res)
     }else{
         //res.sendFile('views/index.html',{root:__dirname})
-        console.log(req.session.userid)     
-        //res.send('user logged out!');   
+        console.log(req.session.userid)
         res.send({ loggedIn: false });
-        //res.redirect('/login');
     }
 });
 app.post("/auth", (req,res) => {
     const username = req.body.username
     const password = req.body.password
-    const sqlSelect = 'SELECT * FROM admin WHERE username = ? AND password = ?'
-    pool.query(sqlSelect, [username,password],(err,result) => {
-        if(err){
-            res.send({ err: err});
-        }
-        if(result.length > 0){                                      
-            req.session.userid = username   
-            req.session.save()
-            console.log(req.session.userid)      
-            res.send(req.session.userid);      
-        }else{
-            res.send({message : "WRONG USERNAME OR PASSWORD!"})
-        }
-    })
-    //req.session.userid = username 
+    
+    console.log(username)
+    // if(username && password){
+        const sqlSelect = 'SELECT * FROM admin WHERE username = ? AND password = ?'
+        pool.query(sqlSelect, [username,password],(err,result) => {
+            if(err){
+                res.send({ err: err});
+            }
+            if(result.length > 0){                                      
+                req.session.userid = result   
+                console.log(req.session.userid)      
+                res.send(result);      
+            }else{
+                res.send({message : "WRONG USERNAME OR PASSWORD!"})
+            }
+        })
 })
-app.get('user/:user', function(req, res){
-    req.session.userid = req.params.user;
-    res.send('<p>Session Set: <a href="/user">View Here</a></p>');
-    console.log(req.session.name);
-    });
+
 
 //logout
-app.get('/logout',(req,res) => {   
-    req.session.destroy();
-    console.log(req.session)
-    res.send("logged out");
+app.get('/logout',(req,res) => {      
+    //req.session.destroy();    
+    // req.session.destroy();
+    // res.cookie("UID",{maxAge: Date.now() })
+    res.clearCookie("UID");
+    // console.log(req)
+    // cookies.set({maxAge: 0});
+    res.redirect('/login');
+    //req.session = null
+    // req.session.destroy((err) => {
+    //     res.redirect('/login') // will always fire after session is destroyed
+    //   })
 });
 
 /////////CALON KARYAWAN API//////////
@@ -191,97 +192,97 @@ app.post("/tambahcalon/api/insert", (req,res) => {
 //     })
 // })
 
-// //select all query by UID
-// app.get('/:UID',(req, res) => {
-//     pool.getConnection((err, connection) => {
-//         if(err) throw err
-//         console.log(`connected as id ${connection.threadId}`)
+//select all query by UID
+app.get('/:UID',(req, res) => {
+    pool.getConnection((err, connection) => {
+        if(err) throw err
+        console.log(`connected as id ${connection.threadId}`)
 
-//         //query(sqlString, callback)
-//         connection.query('SELECT * FROM ADMIN WHERE USERNAME = ?', [req.params.UID], (err,rows) => {
-//             connection.release() //return the connection to pool
+        //query(sqlString, callback)
+        connection.query('SELECT * FROM ADMIN WHERE USERNAME = ?', [req.params.UID], (err,rows) => {
+            connection.release() //return the connection to pool
 
-//             if(!err){
-//                 res.send(rows)
-//             }else{
-//                 console.log(err)
-//             }
-//         })
-
-
-//     })
-// })
-
-// //delete record
-// app.delete('/:UID',(req, res) => {
-//     pool.getConnection((err, connection) => {
-//         if(err) throw err
-//         console.log(`connected as id ${connection.threadId}`)
-
-//         //query(sqlString, callback)
-//         connection.query('DELETE FROM ADMIN WHERE USERNAME = ?', [req.params.UID], (err,rows) => {
-//             connection.release() //return the connection to pool
-
-//             if(!err){
-//                 res.send(`Admin with UID: ${[req.params.UID]} has been removed`)
-//             }else{
-//                 console.log(err)
-//             }
-//         })
+            if(!err){
+                res.send(rows)
+            }else{
+                console.log(err)
+            }
+        })
 
 
-//     })
-// })
+    })
+})
+
+//delete record
+app.delete('/:UID',(req, res) => {
+    pool.getConnection((err, connection) => {
+        if(err) throw err
+        console.log(`connected as id ${connection.threadId}`)
+
+        //query(sqlString, callback)
+        connection.query('DELETE FROM ADMIN WHERE USERNAME = ?', [req.params.UID], (err,rows) => {
+            connection.release() //return the connection to pool
+
+            if(!err){
+                res.send(`Admin with UID: ${[req.params.UID]} has been removed`)
+            }else{
+                console.log(err)
+            }
+        })
 
 
-// //add record
+    })
+})
 
-// app.post('',(req, res) => {
-//     pool.getConnection((err, connection) => {
-//         if(err) throw err
-//         console.log(`connected as id ${connection.threadId}`)
 
-//         const params = req.body
+//add record
 
-//         //query(sqlString, callback)
-//         connection.query('INSERT INTO ADMIN SET ?', params, (err,rows) => {
-//             connection.release() //return the connection to pool
+app.post('',(req, res) => {
+    pool.getConnection((err, connection) => {
+        if(err) throw err
+        console.log(`connected as id ${connection.threadId}`)
 
-//             if(!err){
-//                 res.send(`Admin with UID: ${params.username} has been added`)
-//             }else{
-//                 console.log(err)
-//             }
-//         })
+        const params = req.body
 
-//         console.log(req.body)
+        //query(sqlString, callback)
+        connection.query('INSERT INTO ADMIN SET ?', params, (err,rows) => {
+            connection.release() //return the connection to pool
 
-//     })
-// })
+            if(!err){
+                res.send(`Admin with UID: ${params.username} has been added`)
+            }else{
+                console.log(err)
+            }
+        })
 
-// //update record
-// app.put('',(req, res) => {
-//     pool.getConnection((err, connection) => {
-//         if(err) throw err
-//         console.log(`connected as id ${connection.threadId}`)
+        console.log(req.body)
 
-//         const {username, password} = req.body
+    })
+})
 
-//         //query(sqlString, callback)
-//         connection.query('UPDATE ADMIN SET password = ? WHERE username = ?', [password,username], (err,rows) => {
-//             connection.release() //return the connection to pool
+//update record
+app.put('',(req, res) => {
+    pool.getConnection((err, connection) => {
+        if(err) throw err
+        console.log(`connected as id ${connection.threadId}`)
 
-//             if(!err){
-//                 res.send(`Admin with UID: ${username} has been updated`)
-//             }else{
-//                 console.log(err)
-//             }
-//         })
+        const {username, password} = req.body
 
-//         console.log(req.body)
+        //query(sqlString, callback)
+        connection.query('UPDATE ADMIN SET password = ? WHERE username = ?', [password,username], (err,rows) => {
+            connection.release() //return the connection to pool
 
-//     })
-// })
+            if(!err){
+                res.send(`Admin with UID: ${username} has been updated`)
+            }else{
+                console.log(err)
+            }
+        })
+
+        console.log(req.body)
+
+    })
+})
 
 //listen port
 app.listen(3001, () => {
