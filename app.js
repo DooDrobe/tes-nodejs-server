@@ -19,7 +19,7 @@ app.use(cookieParser());
 
 app.use(cors({
     origin: ["http://localhost:3000"],
-    methods: ["GET","POST"],
+    methods: ["GET","POST","DELETE"],
     credentials: true,
 }))
 app.use(express.json())
@@ -182,6 +182,15 @@ app.get('/listkaryawan',(req, res) => {
     })
 })
 
+//show list karyawan
+app.delete("/api/delkaryawan/:id", (req,res) => {
+    console.log(req.params.id)
+    const UID = req.params.id
+    const sqlDelete = 'DELETE FROM calon_karyawan WHERE id = ?'
+    pool.query(sqlDelete, UID,(err,result) => {
+        if(err) console.log(err)
+    })
+})
 
 
 
