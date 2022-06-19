@@ -43,8 +43,6 @@ app.use(sessions({
     saveUninitialized:false,
     cookie: { maxAge: 1000 * 60 * 60 * 24 },
     resave: false, 
-    //signed : true
-    //store: new filestore()
 }));
 //var session;
 
@@ -91,7 +89,6 @@ app.get("/api/get", (req,res) => {
     })
 })
 app.get('/authcheck',(req,res) => {
-    //req.session.destroy();
     console.log(req.session)
     if(req.session.userid){
         //res.send("Welcome User <a href=\'/logout'>click to logout</a>");
@@ -124,13 +121,12 @@ app.post("/auth", (req,res) => {
             res.send({message : "WRONG USERNAME OR PASSWORD!"})
         }
     })
-    //req.session.userid = username 
 })
-app.get('user/:user', function(req, res){
-    req.session.userid = req.params.user;
-    res.send('<p>Session Set: <a href="/user">View Here</a></p>');
-    console.log(req.session.name);
-    });
+// app.get('user/:user', function(req, res){
+//     req.session.userid = req.params.user;
+//     res.send('<p>Session Set: <a href="/user">View Here</a></p>');
+//     console.log(req.session.name);
+//     });
 
 //logout
 app.get('/logout',(req,res) => {   
@@ -161,6 +157,30 @@ app.post("/tambahcalon/api/insert", (req,res) => {
     })
 })
 
+//show list karyawan
+app.get('/listkaryawan',(req, res) => {
+    pool.getConnection((err, connection) => {
+        if(err) throw err
+        console.log(`connected as id ${connection.threadId}`)
+
+        //query(sqlString, callback)
+        connection.query('SELECT * FROM calon_karyawan', (err,rows) => {
+            connection.release() //return the connection to pool
+
+            if(!err){                
+                //res.send(rows)
+                const a = JSON.stringify(rows)
+                const b = JSON.parse(a)
+                res.send(b)
+                //console.log(rows)
+            }else{
+                console.log(err)
+            }
+        })
+
+
+    })
+})
 
 
 
