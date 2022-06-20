@@ -12,14 +12,12 @@ const saltRounds = 10
 //session
 const sessions = require('express-session'); //untuk ngebuat session
 const cookieParser = require("cookie-parser");
-
-//const filestore = require("session-file-store")(session)
 app.use(cookieParser());
 
 
 app.use(cors({
     origin: ["http://localhost:3000"],
-    methods: ["GET","POST","DELETE"],
+    methods: ["GET","POST","DELETE","PUT"],
     credentials: true,
 }))
 app.use(express.json())
@@ -44,7 +42,6 @@ app.use(sessions({
     cookie: { maxAge: 1000 * 60 * 60 * 24 },
     resave: false, 
 }));
-//var session;
 
 //MAIN QUERY
 //REGISTER USER without AUTH
@@ -122,11 +119,6 @@ app.post("/auth", (req,res) => {
         }
     })
 })
-// app.get('user/:user', function(req, res){
-//     req.session.userid = req.params.user;
-//     res.send('<p>Session Set: <a href="/user">View Here</a></p>');
-//     console.log(req.session.name);
-//     });
 
 //logout
 app.get('/logout',(req,res) => {   
@@ -136,6 +128,7 @@ app.get('/logout',(req,res) => {
 });
 
 /////////CALON KARYAWAN API//////////
+//insert data karyawan
 app.post("/tambahcalon/api/insert", (req,res) => {
     const id  = req.body.id
     const nama  = req.body.nama
@@ -182,7 +175,7 @@ app.get('/listkaryawan',(req, res) => {
     })
 })
 
-//show list karyawan
+//delete calon karyawan
 app.delete("/api/delkaryawan/:id", (req,res) => {
     console.log(req.params.id)
     const UID = req.params.id
@@ -192,125 +185,28 @@ app.delete("/api/delkaryawan/:id", (req,res) => {
     })
 })
 
-
-
-
-
-//TEST QUERY
-
-//select all query
-// app.get('',(req, res) => {
-//     pool.getConnection((err, connection) => {
-//         if(err) throw err
-//         console.log(`connected as id ${connection.threadId}`)
-
-//         //query(sqlString, callback)
-//         connection.query('SELECT * FROM ADMIN', (err,rows) => {
-//             connection.release() //return the connection to pool
-
-//             if(!err){
-                
-//                 res.send(rows)
-//             }else{
-//                 console.log(err)
-//             }
-//         })
-
-
-//     })
-// })
-
-// //select all query by UID
-// app.get('/:UID',(req, res) => {
-//     pool.getConnection((err, connection) => {
-//         if(err) throw err
-//         console.log(`connected as id ${connection.threadId}`)
-
-//         //query(sqlString, callback)
-//         connection.query('SELECT * FROM ADMIN WHERE USERNAME = ?', [req.params.UID], (err,rows) => {
-//             connection.release() //return the connection to pool
-
-//             if(!err){
-//                 res.send(rows)
-//             }else{
-//                 console.log(err)
-//             }
-//         })
-
-
-//     })
-// })
-
-// //delete record
-// app.delete('/:UID',(req, res) => {
-//     pool.getConnection((err, connection) => {
-//         if(err) throw err
-//         console.log(`connected as id ${connection.threadId}`)
-
-//         //query(sqlString, callback)
-//         connection.query('DELETE FROM ADMIN WHERE USERNAME = ?', [req.params.UID], (err,rows) => {
-//             connection.release() //return the connection to pool
-
-//             if(!err){
-//                 res.send(`Admin with UID: ${[req.params.UID]} has been removed`)
-//             }else{
-//                 console.log(err)
-//             }
-//         })
-
-
-//     })
-// })
-
-
-// //add record
-
-// app.post('',(req, res) => {
-//     pool.getConnection((err, connection) => {
-//         if(err) throw err
-//         console.log(`connected as id ${connection.threadId}`)
-
-//         const params = req.body
-
-//         //query(sqlString, callback)
-//         connection.query('INSERT INTO ADMIN SET ?', params, (err,rows) => {
-//             connection.release() //return the connection to pool
-
-//             if(!err){
-//                 res.send(`Admin with UID: ${params.username} has been added`)
-//             }else{
-//                 console.log(err)
-//             }
-//         })
-
-//         console.log(req.body)
-
-//     })
-// })
-
-// //update record
-// app.put('',(req, res) => {
-//     pool.getConnection((err, connection) => {
-//         if(err) throw err
-//         console.log(`connected as id ${connection.threadId}`)
-
-//         const {username, password} = req.body
-
-//         //query(sqlString, callback)
-//         connection.query('UPDATE ADMIN SET password = ? WHERE username = ?', [password,username], (err,rows) => {
-//             connection.release() //return the connection to pool
-
-//             if(!err){
-//                 res.send(`Admin with UID: ${username} has been updated`)
-//             }else{
-//                 console.log(err)
-//             }
-//         })
-
-//         console.log(req.body)
-
-//     })
-// })
+//edit karyawan
+app.put("/tambahcalon/api/edit", (req,res) => {
+    const id  = req.body.id
+    const nama  = req.body.nama
+    const jk = req.body.jk
+    const email = req.body.email
+    const umur = req.body.umur
+    const alamat = req.body.alamat
+    //console.log(req)
+    console.log(id)
+    console.log(nama)
+    console.log(email)
+    console.log(jk)
+    console.log(umur)
+    console.log(alamat)
+    const sqlUpdate = 'UPDATE calon_karyawan SET nama = ?,umur=?,jk=?,email=?,alamat=? WHERE id = ?'
+    pool.query(sqlUpdate, [nama,umur,jk,email,alamat,id], (err,result) => {
+        console.log(result)
+        console.log(err)
+        if(err) console.log(err)
+    })
+})
 
 //listen port
 app.listen(3001, () => {
