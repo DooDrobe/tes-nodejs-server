@@ -208,6 +208,38 @@ app.put("/tambahcalon/api/edit", (req,res) => {
     })
 })
 
+//getby UID
+app.get('/users/:UID', (req,res) => {
+    const sqlSelect = 'SELECT * FROM calon_karyawan WHERE id = ?'
+    pool.query(sqlSelect, req.params.UID,(err,result) => {
+        //console.log(req)
+        res.send(result)
+        //console.log(result.data)
+        // console.log(result)
+        // console.log('juju')
+        //console.log(err)
+    })
+})
+// app.get('/users/:UID',(req, res) => {
+//     pool.getConnection((err, connection) => {
+//         if(err) throw err
+//         console.log(`connected as id ${connection.threadId}`)
+
+//         //query(sqlString, callback)
+//         connection.query('SELECT * FROM ADMIN WHERE USERNAME = ?', [req.params.UID], (err,rows) => {
+//             connection.release() //return the connection to pool
+
+//             if(!err){
+//                 res.send(rows)
+//             }else{
+//                 console.log(err)
+//             }
+//         })
+
+
+//     })
+// })
+
 //listen port
 app.listen(3001, () => {
     console.log("running on port 3001")
