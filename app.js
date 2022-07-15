@@ -88,17 +88,12 @@ app.get("/api/get", (req,res) => {
 app.get('/authcheck',(req,res) => {
     console.log(req.session)
     if(req.session.userid){
-        //res.send("Welcome User <a href=\'/logout'>click to logout</a>");
         console.log(req.session.userid)
-        //res.send(req.session.userid)
         res.send({ loggedIn: true, user: req.session.userid });
-        //console.log(res)
     }else{
-        //res.sendFile('views/index.html',{root:__dirname})
         console.log(req.session.userid)     
         //res.send('user logged out!');   
         res.send({ loggedIn: false });
-        //res.redirect('/login');
     }
 });
 app.post("/auth", (req,res) => {
@@ -206,9 +201,10 @@ app.put("/tambahcalon/api/edit", (req,res) => {
         console.log(err)
         if(err) console.log(err)
     })
+    
 })
 
-//getby UID
+//getby UID buat auto ngisi textbox edit
 app.get('/users/:UID', (req,res) => {
     const sqlSelect = 'SELECT * FROM calon_karyawan WHERE id = ?'
     pool.query(sqlSelect, req.params.UID,(err,result) => {
@@ -220,6 +216,167 @@ app.get('/users/:UID', (req,res) => {
         //console.log(err)
     })
 })
+
+////////////////////////////ASPEK API///////////////////////////////////////
+//insert ASPEK
+app.post("/api/insert-aspek", (req,res) => {
+    const kode  = req.body.kode
+    const namaAspek  = req.body.namaAspek
+    const persentasi = req.body.persentasi
+    const jml = req.body.jml
+
+    console.log(kode)
+    console.log(namaAspek)
+    console.log(persentasi)
+    console.log(jml)
+    const sqlInsert = 'INSERT INTO aspek(kd_aspek,aspek,persentasi,jml_kriteria) VALUES (?,?,?,?)'
+    pool.query(sqlInsert, [kode,namaAspek,persentasi,jml], (err,result) => {
+        console.log(result)
+        console.log(err)
+    })
+})
+
+//show list aspek
+app.get('/api/list-aspek',(req, res) => {
+    pool.getConnection((err, connection) => {
+        if(err) throw err
+        console.log(`connected as id ${connection.threadId}`)
+
+        //query(sqlString, callback)
+        connection.query('SELECT * FROM aspek', (err,rows) => {
+            connection.release() //return the connection to pool
+
+            if(!err){                
+                //res.send(rows)
+                const a = JSON.stringify(rows)
+                const b = JSON.parse(a)
+                res.send(b)
+                //console.log(rows)
+            }else{
+                console.log(err)
+            }
+        })
+
+
+    })
+})
+
+//delete aspek
+app.delete("/api/del-aspek/:kd_aspek", (req,res) => {
+    console.log(req.params.id)
+    const UID = req.params.kd_aspek
+    const sqlDelete = 'DELETE FROM aspek WHERE kd_aspek = ?'
+    pool.query(sqlDelete, UID,(err,result) => {
+        if(err) console.log(err)
+    })
+})
+
+//edit aspek
+app.put("/api/edit-aspek", (req,res) => {
+
+    const kode  = req.body.kode
+    const aspek  = req.body.aspek
+    const persentasi = req.body.persentasi
+    const jml = req.body.jml
+    const sqlUpdate = 'UPDATE aspek SET aspek = ?,persentasi=?,jml_kriteria=? WHERE kd_aspek = ?'
+    pool.query(sqlUpdate, [aspek,persentasi,jml,kode], (err,result) => {
+        console.log(result)
+        console.log(err)
+        if(err) console.log(err)
+    })
+    res.send('gud');
+})
+
+//getby UID buat auto ngisi textbox edit
+app.get('/api/aspek/:UID', (req,res) => {
+    const sqlSelect = 'SELECT * FROM aspek WHERE kd_aspek = ?'
+    pool.query(sqlSelect, req.params.UID,(err,result) => {
+        //console.log(req)
+        res.send(result)
+    })
+})
+
+////////////////////////////KRITERIA API///////////////////////////////////////
+//insert kriteria
+app.post("/api/insert-kriteria", (req,res) => {
+    const kd_kriteria  = req.body.kode
+    const kriteria  = req.body.kriteria
+    const jenis = req.body.factor
+    const bobot = req.body.bobot
+    const kd_aspek = req.body.kd_aspek
+
+    console.log(kd_aspek)
+    const sqlInsert = 'INSERT INTO kriteria(kd_kriteria,kd_aspek,kriteria,bobot_ideal,jenis) VALUES (?,?,?,?,?) '
+    pool.query(sqlInsert, [kd_kriteria,kd_aspek,kriteria,bobot,jenis,kd_aspek], (err,result) => {
+        console.log(result)
+        console.log(err)
+    })
+})
+
+//show list kriteria
+app.get('/api/list-kriteria',(req, res) => {
+    pool.getConnection((err, connection) => {
+        if(err) throw err
+        console.log(`connected as id ${connection.threadId}`)
+
+        //query(sqlString, callback)
+        connection.query('SELECT * FROM kriteria', (err,rows) => {
+            connection.release() //return the connection to pool
+
+            if(!err){                
+                //res.send(rows)
+                const a = JSON.stringify(rows)
+                const b = JSON.parse(a)
+                res.send(b)
+                //console.log(rows)
+            }else{
+                console.log(err)
+            }
+        })
+
+
+    })
+})
+
+//delete kriteria
+app.delete("/api/del-kriteria/:kd_kriteria", (req,res) => {
+    console.log(req.params.id)
+    const kode = req.params.kd_kriteria
+    const sqlDelete = 'DELETE FROM kriteria WHERE kd_kriteria = ?'
+    pool.query(sqlDelete, kode,(err,result) => {
+        if(err) console.log(err)
+    })
+})
+
+//edit kriteria
+app.put("/api/edit-kriteria", (req,res) => {
+
+    const kode  = req.body.kode
+    const kriteria  = req.body.kriteria
+    const factor = req.body.factor
+    const bobot = req.body.bobot
+    console.log(factor)
+    console.log(bobot)
+    console.log(kode)
+    console.log(kriteria)
+    const sqlUpdate = 'UPDATE kriteria SET kriteria = ?,jenis=?,bobot_ideal=? WHERE kd_kriteria = ?'
+    pool.query(sqlUpdate, [kriteria,factor,bobot,kode], (err,result) => {
+        console.log(result)
+        console.log(err)
+        if(err) console.log(err)
+    })
+    res.send('gud');
+})
+
+//getby UID buat auto ngisi textbox edit
+app.get('/api/kriteria/:UID', (req,res) => {
+    const sqlSelect = 'SELECT * FROM kriteria WHERE kd_kriteria = ?'
+    pool.query(sqlSelect, req.params.UID,(err,result) => {
+        //console.log(req)
+        res.send(result)
+    })
+})
+
 // app.get('/users/:UID',(req, res) => {
 //     pool.getConnection((err, connection) => {
 //         if(err) throw err
