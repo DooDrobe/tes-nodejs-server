@@ -156,10 +156,7 @@ app.get('/listkaryawan',(req, res) => {
             connection.release() //return the connection to pool
 
             if(!err){                
-                //res.send(rows)
-                const a = JSON.stringify(rows)
-                const b = JSON.parse(a)
-                res.send(b)
+                res.send(rows)
                 //console.log(rows)
             }else{
                 console.log(err)
@@ -370,6 +367,130 @@ app.put("/api/edit-kriteria", (req,res) => {
 
 //getby UID buat auto ngisi textbox edit
 app.get('/api/kriteria/:UID', (req,res) => {
+    const sqlSelect = 'SELECT * FROM kriteria WHERE kd_kriteria = ?'
+    pool.query(sqlSelect, req.params.UID,(err,result) => {
+        //console.log(req)
+        res.send(result)
+    })
+})
+
+
+////////////////////////////PROFILE MATCHING API///////////////////////////////////////
+//insert profilematching
+app.post("/api/insert-profilematching", (req,res) => {
+    const nilai_calon = req.body.nilai //clear
+    const kd_kriteria  = req.body.kd_kriteria //clear
+    const id_nilai = req.body.id_nilai
+    const id_karyawan = req.body.id_karyawan //clear
+    const bobot = req.body.bobot_ideal
+    const s_gap = nilai_calon-bobot
+    console.log(id_nilai,id_karyawan,kd_kriteria,nilai_calon,s_gap,bobot)
+    //const sqlInsert = 'INSERT INTO nilai_karyawan(id_nilai,id_karyawan,kd_kriteria,nilai_calon,selisih_gap,bobot_ideal) VALUES (?,?,?,?,?,?)'
+    const sqlInsert = 'INSERT INTO nilai_karyawan(id_karyawan,kd_kriteria,nilai_calon,selisih_gap,bobot_ideal) VALUES (?,?,?,?,?)'
+    pool.query(sqlInsert, [id_karyawan,kd_kriteria,nilai_calon,s_gap,bobot], (err,result) => {
+        console.log(result)
+        console.log(err)
+    })
+})
+
+//show list profilematching
+app.get('/api/list-profilematching',(req, res) => {
+    pool.getConnection((err, connection) => {
+        if(err) throw err
+        console.log(`connected as id ${connection.threadId}`)
+
+        //query(sqlString, callback)
+        connection.query('SELECT * FROM nilai_karyawan', (err,rows) => {
+            connection.release() //return the connection to pool
+
+            if(!err){                
+                //res.send(rows)
+                res.send(rows)
+                //console.log(rows)
+            }else{
+                console.log(err)
+            }
+        })
+
+
+    })
+})
+app.get('/api/get-idnilai',(req, res) => {
+    pool.getConnection((err, connection) => {
+        if(err) throw err
+        console.log(`connected as id ${connection.threadId}`)
+
+        //query(sqlString, callback)
+        connection.query('SELECT `id_nilai` FROM nilai_karyawan ORDER BY id_nilai DESC LIMIT 1', (err,rows) => {
+            connection.release() //return the connection to pool
+
+            if(!err){                
+                //res.send(rows)
+                res.send(rows)
+                //console.log(rows)
+            }else{
+                console.log(err)
+            }
+        })
+
+
+    })
+})
+//show super table profilematching x kriteria x calon_karyawan
+app.get('/api/list-supertable',(req, res) => {
+    pool.getConnection((err, connection) => {
+        if(err) throw err
+        console.log(`connected as id ${connection.threadId}`)
+
+        //query(sqlString, callback)
+        connection.query('SELECT nilai_karyawan.id_nilai, nilai_karyawan.id_karyawan,calon_karyawan.nama, nilai_karyawan.nilai_calon,nilai_karyawan.selisih_gap,nilai_karyawan.bobot_ideal, kriteria.kd_kriteria,kriteria.kd_aspek from nilai_karyawan INNER JOIN kriteria ON nilai_karyawan.kd_kriteria = kriteria.kd_kriteria INNER JOIN calon_karyawan ON nilai_karyawan.id_karyawan = calon_karyawan.id', (err,rows) => {
+            connection.release() //return the connection to pool
+
+            if(!err){                
+                //res.send(rows)
+                res.send(rows)
+                //console.log(rows)
+            }else{
+                console.log(err)
+            }
+        })
+
+
+    })
+})
+
+//delete profilematching
+app.delete("/api/del-profilematching/:id", (req,res) => {
+    console.log(req.params.id)
+    const kode = req.params.id
+    const sqlDelete = 'DELETE FROM nilai_karyawan WHERE id_karyawan = ?'
+    pool.query(sqlDelete, kode,(err,result) => {
+        if(err) console.log(err)
+    })
+})
+
+//edit profilematching
+app.put("/api/edit-profilematching", (req,res) => {
+
+    const kode  = req.body.kode
+    const kriteria  = req.body.kriteria
+    const factor = req.body.factor
+    const bobot = req.body.bobot
+    console.log(factor)
+    console.log(bobot)
+    console.log(kode)
+    console.log(kriteria)
+    const sqlUpdate = 'UPDATE kriteria SET kriteria = ?,jenis=?,bobot_ideal=? WHERE kd_kriteria = ?'
+    pool.query(sqlUpdate, [kriteria,factor,bobot,kode], (err,result) => {
+        console.log(result)
+        console.log(err)
+        if(err) console.log(err)
+    })
+    res.send('gud');
+})
+
+//getby UID buat auto ngisi textbox edit
+app.get('/api/profilematching/:UID', (req,res) => {
     const sqlSelect = 'SELECT * FROM kriteria WHERE kd_kriteria = ?'
     pool.query(sqlSelect, req.params.UID,(err,result) => {
         //console.log(req)
