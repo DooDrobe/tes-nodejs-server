@@ -1,20 +1,17 @@
-//import conn.jss
-
 const express =require('express')
 const bodyparser = require('body-parser')
 const mysql = require('mysql')
 const cors = require('cors')
-// const { request, response } = require('express')
+const { request, response } = require('express')
 const app = express()
-// const port = process.env.PORT || 5000
-// const bcrypt = require('bcrypt')
-// const saltRounds = 10
+const port = process.env.PORT || 5000
+
 //session
 const sessions = require('express-session'); //untuk ngebuat session
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
-
+// allow data ke firewall
 app.use(cors({
     origin: ["http://localhost:3000"],
     methods: ["GET","POST","DELETE","PUT"],
@@ -30,7 +27,7 @@ const pool = mysql.createPool({
     host            : 'localhost',
     user            : 'root',
     password        : '',
-    database        : 'elfadh'
+    database        : 'db_elfadh'
 });
 
 //session
@@ -39,7 +36,7 @@ app.use(sessions({
     key: "UID",
     secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
     saveUninitialized:false,
-    cookie: { maxAge: 1000 * 60 * 60 * 24 },
+    cookie: { maxAge: oneDay },
     resave: false, 
 }));
 
@@ -73,11 +70,10 @@ app.post("/api/insert", (req,res) => {
     pool.query(sqlInsert, [username, password], (err,result) => {
         // console.log(result)
          console.log(err)
-         res.send(result)
     })
 })
 
-/////////LOGIN//////////
+/////////LOGIN API//////////
 app.get("/api/get", (req,res) => {
     const sqlSelect = 'SELECT * FROM admin'
     pool.query(sqlSelect, (err,result) => {
@@ -87,13 +83,12 @@ app.get("/api/get", (req,res) => {
     })
 })
 app.get('/authcheck',(req,res) => {
-    // console.log(req.session)
+    //console.log(req.session)
     if(req.session.userid){
-        // console.log(req.session.userid)
+        console.log(req.session.userid)
         res.send({ loggedIn: true, user: req.session.userid });
     }else{
-        // console.log(req.session.userid)     
-        //res.send('user logged out!');   
+        //console.log(req.session.userid)    
         res.send({ loggedIn: false });
     }
 });
@@ -119,13 +114,14 @@ app.post("/auth", (req,res) => {
 //logout
 app.get('/logout',(req,res) => {   
     req.session.destroy();
-    console.log(req.session)
+    // console.log(req.session)
     res.send("logged out");
 });
 
 /////////CALON KARYAWAN API//////////
 //insert data karyawan
 app.post("/tambahcalon/api/insert", (req,res) => {
+    // console.log(req)
     const id  = req.body.id
     const nama  = req.body.nama
     const jk = req.body.jk
@@ -133,17 +129,16 @@ app.post("/tambahcalon/api/insert", (req,res) => {
     const umur = req.body.umur
     const alamat = req.body.alamat
 
-    console.log(id)
-    console.log(nama)
-    console.log(email)
-    console.log(jk)
-    console.log(umur)
-    console.log(alamat)
+    // console.log(id)
+    // console.log(nama)
+    // console.log(email)
+    // console.log(jk)
+    // console.log(umur)
+    // console.log(alamat)
     const sqlInsert = 'INSERT INTO calon_karyawan(id,nama,umur,jk,email,alamat) VALUES (?,?,?,?,?,?)'
     pool.query(sqlInsert, [id,nama,umur,jk,email,alamat], (err,result) => {
         console.log(result)
         console.log(err)
-        res.send(result)
     })
 })
 
@@ -158,6 +153,8 @@ app.get('/listkaryawan',(req, res) => {
             connection.release() //return the connection to pool
 
             if(!err){                
+                //res.send(rows)
+                
                 res.send(rows)
                 //console.log(rows)
             }else{
@@ -175,7 +172,6 @@ app.delete("/api/delkaryawan/:id", (req,res) => {
     const UID = req.params.id
     const sqlDelete = 'DELETE FROM calon_karyawan WHERE id = ?'
     pool.query(sqlDelete, UID,(err,result) => {
-        res.send(result)
         if(err) console.log(err)
     })
 })
@@ -197,19 +193,22 @@ app.put("/tambahcalon/api/edit", (req,res) => {
     console.log(alamat)
     const sqlUpdate = 'UPDATE calon_karyawan SET nama = ?,umur=?,jk=?,email=?,alamat=? WHERE id = ?'
     pool.query(sqlUpdate, [nama,umur,jk,email,alamat,id], (err,result) => {
-
-        res.send(result)
+        console.log(result)
+        console.log(err)
         if(err) console.log(err)
     })
-    
 })
 
-//getby UID buat auto ngisi textbox edit
+//getby UID
 app.get('/users/:UID', (req,res) => {
     const sqlSelect = 'SELECT * FROM calon_karyawan WHERE id = ?'
     pool.query(sqlSelect, req.params.UID,(err,result) => {
         //console.log(req)
         res.send(result)
+        //console.log(result.data)
+        console.log(result)
+        // console.log('juju')
+        //console.log(err)
     })
 })
 
@@ -221,19 +220,19 @@ app.post("/api/insert-aspek", (req,res) => {
     const persentasi = req.body.persentasi
     const jml = req.body.jml
 
-    console.log(kode)
-    console.log(namaAspek)
-    console.log(persentasi)
-    console.log(jml)
+    // console.log(kode)
+    // console.log(namaAspek)
+    // console.log(persentasi)
+    // console.log(jml)
     const sqlInsert = 'INSERT INTO aspek(kd_aspek,aspek,persentasi,jml_kriteria) VALUES (?,?,?,?)'
     pool.query(sqlInsert, [kode,namaAspek,persentasi,jml], (err,result) => {
-        res.send(result)
         console.log(result)
         console.log(err)
+        res.send(result)
     })
 })
 
-//show list aspek
+//show list aspek 
 app.get('/api/list-aspek',(req, res) => {
     pool.getConnection((err, connection) => {
         if(err) throw err
@@ -243,8 +242,9 @@ app.get('/api/list-aspek',(req, res) => {
         connection.query('SELECT * FROM aspek', (err,rows) => {
             connection.release() //return the connection to pool
 
-            if(!err){                
+            if(!err){      
                 res.send(rows)
+                console.log(rows)
             }else{
                 console.log(err)
             }
@@ -260,7 +260,6 @@ app.delete("/api/del-aspek/:kd_aspek", (req,res) => {
     const UID = req.params.kd_aspek
     const sqlDelete = 'DELETE FROM aspek WHERE kd_aspek = ?'
     pool.query(sqlDelete, UID,(err,result) => {
-        res.send(result)
         if(err) console.log(err)
     })
 })
@@ -281,7 +280,7 @@ app.put("/api/edit-aspek", (req,res) => {
     res.send('gud');
 })
 
-//getby UID buat auto ngisi textbox edit
+//getby UID
 app.get('/api/aspek/:UID', (req,res) => {
     const sqlSelect = 'SELECT * FROM aspek WHERE kd_aspek = ?'
     pool.query(sqlSelect, req.params.UID,(err,result) => {
@@ -299,12 +298,11 @@ app.post("/api/insert-kriteria", (req,res) => {
     const bobot = req.body.bobot
     const kd_aspek = req.body.kd_aspek
 
-    console.log(kd_aspek)
+    console.log(jenis)
     const sqlInsert = 'INSERT INTO kriteria(kd_kriteria,kd_aspek,kriteria,bobot_ideal,jenis) VALUES (?,?,?,?,?) '
     pool.query(sqlInsert, [kd_kriteria,kd_aspek,kriteria,bobot,jenis,kd_aspek], (err,result) => {
         console.log(result)
         console.log(err)
-        res.send(result)
     })
 })
 
@@ -319,7 +317,11 @@ app.get('/api/list-kriteria',(req, res) => {
             connection.release() //return the connection to pool
 
             if(!err){                
-                res.send(rows)
+                //res.send(rows)
+                const a = JSON.stringify(rows)
+                const b = JSON.parse(a)
+                res.send(b)
+                //console.log(rows)
             }else{
                 console.log(err)
             }
@@ -335,7 +337,6 @@ app.delete("/api/del-kriteria/:kd_kriteria", (req,res) => {
     const kode = req.params.kd_kriteria
     const sqlDelete = 'DELETE FROM kriteria WHERE kd_kriteria = ?'
     pool.query(sqlDelete, kode,(err,result) => {
-        res.send(result)
         if(err) console.log(err)
     })
 })
@@ -353,9 +354,11 @@ app.put("/api/edit-kriteria", (req,res) => {
     console.log(kriteria)
     const sqlUpdate = 'UPDATE kriteria SET kriteria = ?,jenis=?,bobot_ideal=? WHERE kd_kriteria = ?'
     pool.query(sqlUpdate, [kriteria,factor,bobot,kode], (err,result) => {
-        res.send(result)
+        console.log(result)
+        console.log(err)
         if(err) console.log(err)
     })
+    res.send('gud');
 })
 
 //getby UID buat auto ngisi textbox edit
@@ -378,6 +381,41 @@ app.post("/api/insert-profilematching", (req,res) => {
     const bobot = req.body.bobot_ideal
     const s_gap = req.body.s_gap
     const k_gap = req.body.k_gap
+    // let k_gap
+    
+    // switch (s_gap) {
+    // case 0:
+    //     k_gap = 5
+    //     break;
+    // case 1:
+    //     k_gap = 4.5
+    //     break;
+    // case -1:
+    //     k_gap = 4
+    //     break;
+    // case 2:
+    //     k_gap = 3.5
+    //     break;
+    // case -2:
+    //     k_gap = 3
+    //     break;
+    // case 3:
+    //     k_gap = 2.5
+    //     break;
+    // case -3:
+    //     k_gap = 2
+    //     break;
+    // case 4:
+    //     k_gap = 1.5
+    //     break;
+    // case -4:
+    //     k_gap = 1
+    //     break;
+    // default:
+    //     k_gap = 0
+    // }
+    // console.log(id_nilai,id_karyawan,kd_kriteria,nilai_calon,s_gap,bobot,k_gap)
+    //const sqlInsert = 'INSERT INTO nilai_karyawan(id_nilai,id_karyawan,kd_kriteria,nilai_calon,selisih_gap,bobot_ideal) VALUES (?,?,?,?,?,?)'
     const sqlInsert = 'INSERT INTO nilai_karyawan(id_karyawan,kd_kriteria,nilai_calon,selisih_gap,bobot_ideal,konversi_gap) VALUES (?,?,?,?,?,?)'
     pool.query(sqlInsert, [id_karyawan,kd_kriteria,nilai_calon,s_gap,bobot,k_gap], (err,result) => {
         console.log(result.data)
@@ -464,6 +502,34 @@ app.delete("/api/del-profilematching/:id", (req,res) => {
     })
 })
 
+//edit profilematching
+app.put("/api/edit-profilematching", (req,res) => {
+
+    const kode  = req.body.kode
+    const kriteria  = req.body.kriteria
+    const factor = req.body.factor
+    const bobot = req.body.bobot
+    console.log(factor)
+    console.log(bobot)
+    console.log(kode)
+    console.log(kriteria)
+    const sqlUpdate = 'UPDATE kriteria SET kriteria = ?,jenis=?,bobot_ideal=? WHERE kd_kriteria = ?'
+    pool.query(sqlUpdate, [kriteria,factor,bobot,kode], (err,result) => {
+        console.log(result)
+        console.log(err)
+        if(err) console.log(err)
+    })
+    res.send('gud');
+})
+
+//getby UID buat auto ngisi textbox edit
+app.get('/api/profilematching/:UID', (req,res) => {
+    const sqlSelect = 'SELECT * FROM kriteria WHERE kd_kriteria = ?'
+    pool.query(sqlSelect, req.params.UID,(err,result) => {
+        //console.log(req)
+        res.send(result)
+    })
+})
 
 ////////////////////////////CFSF API///////////////////////////////////////
 //insert core second
@@ -517,6 +583,28 @@ app.delete("/api/del-cfsf/:id", (req,res) => {
         if(err) console.log(err)
     })
 })
+app.get('/api/get-idnilai',(req, res) => {
+    pool.getConnection((err, connection) => {
+        if(err) throw err
+        console.log(`connected as id ${connection.threadId}`)
+
+        //query(sqlString, callback)
+        connection.query('SELECT `id_nilai` FROM nilai_karyawan ORDER BY id_nilai DESC LIMIT 1', (err,rows) => {
+            connection.release() //return the connection to pool
+
+            if(!err){                
+                //res.send(rows)
+                res.send(rows)
+                //console.log(rows)
+            }else{
+                console.log(err)
+            }
+        })
+
+
+    })
+})
+
 
 //show super table cs_fs x calon_karyawan
 app.get('/api/list-supertable-cfsf',(req, res) => {
@@ -535,11 +623,42 @@ app.get('/api/list-supertable-cfsf',(req, res) => {
                 console.log(err)
             }
         })
+        // connection.query('SELECT nilai_karyawan.id_nilai, nilai_karyawan.id_karyawan,calon_karyawan.nama, nilai_karyawan.nilai_calon,nilai_karyawan.selisih_gap,nilai_karyawan.bobot_ideal,nilai_karyawan.konversi_gap, kriteria.kd_kriteria,kriteria.kd_aspek,kriteria.jenis from nilai_karyawan INNER JOIN kriteria ON nilai_karyawan.kd_kriteria = kriteria.kd_kriteria INNER JOIN calon_karyawan ON nilai_karyawan.id_karyawan = calon_karyawan.id', (err,rows) => {   
+        //     connection.release() //return the connection to pool
+
+        //     if(!err){                
+        //         //res.send(rows)
+        //         res.send(rows)
+        //         //console.log(rows)
+        //     }else{
+        //         console.log(err)
+        //     }
+        // })
 
 
     })
 })
 
+
+// app.get('/users/:UID',(req, res) => {
+//     pool.getConnection((err, connection) => {
+//         if(err) throw err
+//         console.log(`connected as id ${connection.threadId}`)
+
+//         //query(sqlString, callback)
+//         connection.query('SELECT * FROM ADMIN WHERE USERNAME = ?', [req.params.UID], (err,rows) => {
+//             connection.release() //return the connection to pool
+
+//             if(!err){
+//                 res.send(rows)
+//             }else{
+//                 console.log(err)
+//             }
+//         })
+
+
+//     })
+// })
 
 //listen port
 app.listen(3001, () => {
