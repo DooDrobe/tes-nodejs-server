@@ -111,7 +111,7 @@ app.post("/auth", (req,res) => {
             console.log(req.session.userid)      
             res.send(req.session.userid);      
         }else{
-            res.send({message : "WRONG USERNAME OR PASSWORD!"})
+            res.send({message : " "})
         }
     })
 })
