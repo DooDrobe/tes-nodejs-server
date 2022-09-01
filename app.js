@@ -27,10 +27,10 @@ app.use(bodyparser.json())
 //mysql
 const pool = mysql.createPool({
     connectionLimit :  10,
-    host            : 'localhost',
-    user            : 'root',
-    password        : '',
-    database        : 'elfadh'
+    host            : 'ec2-34-235-31-124.compute-1.amazonaws.com',
+    user            : 'rddcasdnynjiia',
+    password        : '06a4fe7fa4c14142e78cea4e6ee6dc66dfb2706769b99784a138ef9008f9b168',
+    database        : 'd2216jiu6ct1nr'
 });
 
 //session
